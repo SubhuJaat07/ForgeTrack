@@ -3,6 +3,8 @@ import * as Notifications from 'expo-notifications';
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
+    shouldShowBanner: true,
+    shouldShowList: true,
     shouldPlaySound: true,
     shouldSetBadge: true,
   }),
@@ -25,9 +27,15 @@ export async function scheduleJobReminder(
   title: string,
   scheduledTime: Date
 ): Promise<string> {
+  const secondsUntilReminder = Math.max(
+    0,
+    Math.floor((scheduledTime.getTime() - Date.now()) / 1000) - 1800
+  );
+
   const trigger: Notifications.NotificationTriggerInput = {
-    type: Notifications.SchedulableTriggerInputTypes.DATE,
-    seconds: Math.floor((scheduledTime.getTime() - Date.now()) / 1000) - 1800,
+    type: Notifications.SchedulableTriggerInputTypes.TIME_INTERVAL,
+    seconds: secondsUntilReminder,
+    repeats: false,
   };
 
   const notificationId = await Notifications.scheduleNotificationAsync({
@@ -55,6 +63,6 @@ export async function sendLocalNotification(title: string, body: string, data?: 
       data,
       sound: true,
     },
-    trigger: { seconds: 1 },
+    trigger: null,
   });
 }

@@ -1,23 +1,22 @@
-import * as FileSystem from 'expo-file-system';
+import { File, Directory, Paths } from 'expo-file-system';
 import { Job, Client } from '@/types';
 
-const DATA_DIR = `${FileSystem.documentDirectory}data/`;
-const JOBS_FILE = `${DATA_DIR}jobs.json`;
-const CLIENTS_FILE = `${DATA_DIR}clients.json`;
+const dataDir = new Directory(Paths.document, 'data');
+const jobsFile = new File(dataDir, 'jobs.json');
+const clientsFile = new File(dataDir, 'clients.json');
 
 export async function ensureDataDir() {
-  const dirInfo = await FileSystem.getInfoAsync(DATA_DIR);
-  if (!dirInfo.exists) {
-    await FileSystem.makeDirectoryAsync(DATA_DIR, { intermediates: true });
+  try {
+    dataDir.create();
+  } catch {
+    // Directory may already exist
   }
 }
 
 export async function saveJobs(jobs: Job[]) {
   try {
     await ensureDataDir();
-    await FileSystem.writeAsStringAsync(JOBS_FILE, JSON.stringify(jobs), {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
+    await jobsFile.write(JSON.stringify(jobs), { encoding: 'utf8' });
   } catch (error) {
     console.error('Failed to save jobs:', error);
   }
@@ -26,9 +25,8 @@ export async function saveJobs(jobs: Job[]) {
 export async function loadJobs(): Promise<Job[]> {
   try {
     await ensureDataDir();
-    const info = await FileSystem.getInfoAsync(JOBS_FILE);
-    if (info.exists) {
-      const content = await FileSystem.readAsStringAsync(JOBS_FILE);
+    if (jobsFile.exists) {
+      const content = await jobsFile.text();
       return JSON.parse(content);
     }
   } catch (error) {
@@ -40,9 +38,7 @@ export async function loadJobs(): Promise<Job[]> {
 export async function saveClients(clients: Client[]) {
   try {
     await ensureDataDir();
-    await FileSystem.writeAsStringAsync(CLIENTS_FILE, JSON.stringify(clients), {
-      encoding: FileSystem.EncodingType.UTF8,
-    });
+    await clientsFile.write(JSON.stringify(clients), { encoding: 'utf8' });
   } catch (error) {
     console.error('Failed to save clients:', error);
   }
@@ -51,9 +47,8 @@ export async function saveClients(clients: Client[]) {
 export async function loadClients(): Promise<Client[]> {
   try {
     await ensureDataDir();
-    const info = await FileSystem.getInfoAsync(CLIENTS_FILE);
-    if (info.exists) {
-      const content = await FileSystem.readAsStringAsync(CLIENTS_FILE);
+    if (clientsFile.exists) {
+      const content = await clientsFile.text();
       return JSON.parse(content);
     }
   } catch (error) {
@@ -64,17 +59,21 @@ export async function loadClients(): Promise<Client[]> {
 
 export async function exportAllData(jobs: Job[], clients: Client[]): Promise<string> {
   const data = JSON.stringify({ jobs, clients, exportedAt: new Date().toISOString() }, null, 2);
-  const exportPath = `${FileSystem.cacheDirectory}forgetrack_export_${Date.now()}.json`;
-  await FileSystem.writeAsStringAsync(exportPath, data);
-  return exportPath;
+  const exportFile = new File(Paths.cache, `forgetrack_export_${Date.now()}.json`);
+  await exportFile.write(data, { encoding: 'utf8' });
+  return exportFile.uri;
 }
 
 export async function saveSignature(signatureData: string, jobId: string): Promise<string> {
-  const dir = `${FileSystem.documentDirectory}signatures/`;
-  await FileSystem.makeDirectoryAsync(dir, { intermediates: true });
-  const path = `${dir}${jobId}_${Date.now()}.png`;
-  await FileSystem.writeAsStringAsync(path, signatureData, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  return path;
+  const sigDir = new Directory(Paths.document, 'signatures');
+  sigDir.create();
+  const sigFile = new File(sigDir, `${jobId}_${Date.now()}.png`);
+  // Write base64 data
+  const binary = atob(signatureData);
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i++) {
+    bytes[i] = binary.charCodeAt(i);
+  }
+  await sigFile.write(bytes);
+  return sigFile.uri;
 }

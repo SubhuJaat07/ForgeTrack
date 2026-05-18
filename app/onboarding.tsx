@@ -105,7 +105,7 @@ export default function OnboardingScreen() {
       </View>
 
       {/* Slides */}
-      <View style={styles.slidesContainer} showsHorizontalScrollIndicator={false}>
+      <View style={styles.slidesContainer}>
         <Animated.View style={[styles.slidesWrapper, slideAnimatedStyle]}>
           {slides.map((slide, index) => (
             <View key={slide.id} style={[styles.slide, { width }]}>

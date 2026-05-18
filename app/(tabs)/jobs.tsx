@@ -194,7 +194,7 @@ export default function JobsScreen() {
             setSortBy(options[(options.indexOf(sortBy) + 1) % options.length]);
           }}
         >
-          <Feather name="arrow-up-down" size={14} color="#6C5CE7" />
+          <Feather name="arrow-down" size={14} color="#6C5CE7" />
           <Text style={{ fontSize: 12, color: '#6C5CE7', fontWeight: '600', marginLeft: 4 }}>
             Sort: {sortBy}
           </Text>
