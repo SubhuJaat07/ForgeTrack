@@ -1,0 +1,16 @@
+node_modules/
+.expo/
+.expo-shared/
+dist/
+*.jks
+*.keystore
+*.p12
+*.key
+!*.keystore.d.ts
+*.mobileprovision
+*.orig.*
+.DS_Store
+*.hprof
+google-services.json
+GoogleService-Info.plist
+eas-build-*/
