@@ -7,6 +7,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
+  GRADLE_VERSION: '8.7'
 
 jobs:
   build:
@@ -26,7 +27,7 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Cache Gradle packages
+      - name: Cache Gradle
         uses: actions/cache@v4
         with:
           path: |
@@ -36,8 +37,13 @@ jobs:
           restore-keys: |
             gradle-
 
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
+      - name: Setup Gradle
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-${{ env.GRADLE_VERSION }}-bin.zip
+          unzip -q gradle-${{ env.GRADLE_VERSION }}-bin.zip
+          echo "GRADLE_HOME=$PWD/gradle-${{ env.GRADLE_VERSION }}" >> $GITHUB_ENV
+          echo "$PWD/gradle-${{ env.GRADLE_VERSION }}/bin" >> $GITHUB_PATH
+          gradle --version
 
       - name: Generate Release Keystore
         run: |
@@ -53,13 +59,13 @@ jobs:
             -dname "CN=ForgeTrack, OU=Dev, O=ForgeTrack, L=Unknown, ST=Unknown, C=US"
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
+        run: gradle assembleDebug --no-daemon --stacktrace 2>&1
 
       - name: Build Release APK (Signed)
-        run: ./gradlew assembleRelease --no-daemon --stacktrace 2>&1
+        run: gradle assembleRelease --no-daemon --stacktrace 2>&1
 
       - name: Build Release AAB (Signed)
-        run: ./gradlew bundleRelease --no-daemon --stacktrace 2>&1
+        run: gradle bundleRelease --no-daemon --stacktrace 2>&1
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
@@ -81,7 +87,7 @@ jobs:
           name: ForgeTrack-Release-AAB
           path: app/build/outputs/bundle/release/*.aab
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         if: success()
         with:
@@ -92,7 +98,7 @@ jobs:
             Built with Kotlin + Jetpack Compose + Material 3
             - **Build**: #${{ github.run_number }}
             - **Commit**: `${{ github.sha }}`
-            - **Features**: Dashboard, Job Management, Client Management, Analytics, In-App Auto-Update, PDF Reports, GPS Check-in, Voice Notes, Photo Documentation
+            - **Features**: Dashboard, Job Management, Client Management, Analytics, In-App Auto-Update, PDF Reports, GPS Check-in, Voice Notes, Photo Docs
           files: |
             app/build/outputs/apk/debug/*.apk
             app/build/outputs/apk/release/*.apk
