@@ -25,6 +25,7 @@ import androidx.compose.material.icons.filled.ArrowUpward
 import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.Icon
@@ -81,6 +82,7 @@ private val statusColors = mapOf(
     JobStatus.SCHEDULED to Color(0xFF6C5CE7)
 )
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AnalyticsScreen(
     viewModel: AnalyticsViewModel = hiltViewModel()
@@ -235,6 +237,8 @@ private fun PeriodSelector(
                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                 ),
                 border = FilterChipDefaults.filterChipBorder(
+                    enabled = true,
+                    selected = selectedPeriod == period,
                     borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                     selectedBorderColor = MaterialTheme.colorScheme.primary
                 )
@@ -266,9 +270,9 @@ private fun KPICardsSection(kpiData: KpiData) {
                     modifier = Modifier.weight(1f)
                 )
             }
-        }
-        if (rowCards.size < 2) {
-            Spacer(modifier = Modifier.weight(1f))
+            if (rowCards.size < 2) {
+                Spacer(modifier = Modifier.weight(1f))
+            }
         }
     }
 }

@@ -32,7 +32,7 @@ class MainActivity : ComponentActivity() {
                     color = MaterialTheme.colorScheme.background
                 ) {
                     val viewModel: DashboardViewModel by hiltViewModel()
-                    val isOnboarded by viewModel.isOnboarded.collectAsState()
+                    val isOnboarded by viewModel.isOnboarded.collectAsState(initial = false)
                     val navController = rememberNavController()
 
                     ForgeTrackNavigation(

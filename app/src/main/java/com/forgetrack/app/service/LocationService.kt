@@ -23,7 +23,7 @@ class LocationService : Service() {
         val notification = NotificationCompat.Builder(this, "location_channel")
             .setContentTitle("ForgeTrack")
             .setContentText("Tracking your location for job check-in")
-            .setSmallIcon(R.drawable.ic_launcher)
+            .setSmallIcon(R.mipmap.ic_launcher)
             .setOngoing(true)
             .build()
         startForeground(1, notification)

@@ -3,8 +3,6 @@ package com.forgetrack.app.data.model
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.room.TypeConverters
-import kotlinx.serialization.Serializable
-
 enum class JobStatus { PENDING, SCHEDULED, IN_PROGRESS, COMPLETED, CANCELLED }
 enum class JobPriority { LOW, MEDIUM, HIGH, URGENT }
 enum class PhotoType { BEFORE, AFTER, PROGRESS }

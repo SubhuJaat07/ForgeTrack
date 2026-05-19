@@ -21,8 +21,11 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.drawIntoCanvas
+import androidx.compose.ui.graphics.nativeCanvas
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -442,7 +445,7 @@ private fun StatsGrid(weeklyStats: WeeklyStats, todayJobs: List<Job>) {
 private fun StatCard(
     title: String,
     value: String,
-    icon: @Composable () -> Unit,
+    icon: ImageVector,
     color: Color,
     modifier: Modifier = Modifier
 ) {
@@ -465,7 +468,7 @@ private fun StatCard(
                     contentAlignment = Alignment.Center
                 ) {
                     Icon(
-                        icon(),
+                        icon,
                         contentDescription = null,
                         modifier = Modifier.size(18.dp),
                         tint = color
@@ -563,7 +566,7 @@ private fun WeeklyBarChart(weeklyStats: WeeklyStats) {
         val barWidth = barSpacing * 1.4f
 
         for (i in days.indices) {
-            val fraction = dailyRevenue[i] / maxRevenue
+            val fraction = (dailyRevenue[i] / maxRevenue).toFloat()
             val barHeight = (fraction * chartHeight).coerceAtLeast(2.dp.toPx())
             val x = barSpacing + i * (barWidth + barSpacing)
             val y = chartHeight - barHeight
@@ -612,10 +615,11 @@ private fun JobStatusDonutChart(jobs: List<Job>) {
         horizontalArrangement = Arrangement.SpaceEvenly,
         verticalAlignment = Alignment.CenterVertically
     ) {
+        val surfaceVariantColor = MaterialTheme.colorScheme.surfaceVariant
         if (jobs.isEmpty()) {
             Canvas(modifier = Modifier.size(140.dp)) {
                 drawCircle(
-                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    color = surfaceVariantColor,
                     radius = size.width / 2f - 16.dp.toPx(),
                     center = center,
                     style = Stroke(width = 24.dp.toPx())
@@ -695,6 +699,7 @@ private fun TodayJobCard(job: Job, onClick: () -> Unit) {
         JobStatus.IN_PROGRESS -> Color(0xFFFF9800)
         JobStatus.COMPLETED -> Color(0xFF4CAF50)
         JobStatus.CANCELLED -> Color(0xFFE53935)
+        JobStatus.PENDING -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     Card(

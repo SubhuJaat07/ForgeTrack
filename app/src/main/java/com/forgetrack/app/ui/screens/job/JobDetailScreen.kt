@@ -132,6 +132,7 @@ fun JobDetailScreen(
         JobStatus.IN_PROGRESS -> Color(0xFFFF9800)
         JobStatus.COMPLETED -> Color(0xFF4CAF50)
         JobStatus.CANCELLED -> Color(0xFFE53935)
+        JobStatus.PENDING -> MaterialTheme.colorScheme.onSurfaceVariant
     }
 
     val priorityColor = when (currentJob.priority.name) {
