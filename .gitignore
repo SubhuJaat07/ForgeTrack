@@ -14,3 +14,6 @@ dist/
 google-services.json
 GoogleService-Info.plist
 eas-build-*/
+android/
+ios/
+*.local.properties

@@ -1,52 +1,135 @@
-name: EAS Build
+name: Build Android APK (No EAS Token)
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type (debug = faster, release = signed APK)'
+        required: true
+        default: 'debug'
+        type: choice
+        options:
+          - debug
+          - release
 
 jobs:
-  build-preview:
-    name: Build Preview APK
+  build:
+    name: Build Android APK
     runs-on: ubuntu-latest
+    timeout-minutes: 60
+
     steps:
-      - uses: actions/checkout@v4
+      - name: 📥 Checkout code
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: ☕ Setup Java 21
+        uses: actions/setup-java@v4
         with:
-          node-version: 20
+          java-version: '21'
+          distribution: 'zulu'
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
+      - name: 🟢 Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Install dependencies
-        run: npm install
+      - name: 📦 Install npm dependencies
+        run: npm install --legacy-peer-deps
 
-      - name: Build Preview APK
-        run: eas build --platform android --profile preview --non-interactive --no-wait
+      - name: 🏗️ Generate native Android project
+        run: npx expo prebuild --platform android --clean --no-install
 
-  build-production:
-    name: Build Production AAB
-    runs-on: ubuntu-latest
-    needs: build-preview
-    steps:
-      - uses: actions/checkout@v4
+      - name: 🔧 Configure Gradle
+        run: |
+          cd android
+          chmod +x gradlew
+          # Limit ABI to arm64-v8a for faster builds
+          echo 'android {defaultConfig {ndk {abiFilters += ["arm64-v8a"]}}}' >> app/build.gradle
 
-      - uses: actions/setup-node@v4
+      - name: 📱 Build Debug APK
+        if: github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == ''
+        run: |
+          cd android
+          ./gradlew assembleDebug --no-daemon --warning-mode=none
+          echo "APK size: $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)"
+
+      - name: 🔑 Create signing keystore
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          keytool -genkeypair -v \
+            -keystore /tmp/release.keystore \
+            -alias forgetrack \
+            -keyalg RSA -keysize 2048 -validity 10000 \
+            -storepass forgetrack123 -keypass forgetrack123 \
+            -dname "CN=ForgeTrack,OU=Dev,O=ForgeTrack,L=Mumbai,S=MH,C=IN"
+
+      - name: 📱 Build Release APK (Signed)
+        if: github.event.inputs.build_type == 'release'
+        run: |
+          cd android
+          # Inject release signing
+          cat >> app/build.gradle << 'EOF'
+
+          android {
+            signingConfigs {
+              release {
+                storeFile file("/tmp/release.keystore")
+                storePassword "forgetrack123"
+                keyAlias "forgetrack"
+                keyPassword "forgetrack123"
+              }
+            }
+            buildTypes {
+              release {
+                signingConfig signingConfigs.release
+                minifyEnabled false
+                shrinkResources false
+              }
+            }
+          }
+          EOF
+
+          ./gradlew assembleRelease --no-daemon --warning-mode=none
+          echo "APK size: $(du -h app/build/outputs/apk/release/*.apk | cut -f1)"
+
+      - name: 📤 Upload APK
+        uses: actions/upload-artifact@v4
         with:
-          node-version: 20
+          name: ForgeTrack-${{ github.event.inputs.build_type || 'Debug' }}-APK
+          path: |
+            android/app/build/outputs/apk/debug/*.apk
+            android/app/build/outputs/apk/release/*.apk
+          if-no-files-found: warn
 
-      - name: Setup Expo
-        uses: expo/expo-github-action@v8
+      - name: 🚀 Create GitHub Release
+        if: github.event.inputs.build_type == 'release' && success()
+        uses: softprops/action-gh-release@v2
         with:
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+          tag_name: v1.0.${{ github.run_number }}
+          name: "ForgeTrack v1.0.${{ github.run_number }}"
+          body: |
+            ## 📱 ForgeTrack - Professional Field Service & Job Tracker
 
-      - name: Install dependencies
-        run: npm install
+            ### APK Details
+            - **Build**: #${{ github.run_number }}
+            - **Commit**: `${{ github.sha }}`
+            - **Type**: Release (Signed)
+            - **ABI**: arm64-v8a
+          files: android/app/build/outputs/apk/release/*.apk
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build Production AAB
-        run: eas build --platform android --profile production --non-interactive --no-wait
+      - name: 📋 Summary
+        if: always()
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "| Item | Details |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|---------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | ${{ github.event.inputs.build_type || 'debug' }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Status | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "📥 **Download APK**: Actions → This Run → Artifacts" >> $GITHUB_STEP_SUMMARY
