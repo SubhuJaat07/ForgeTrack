@@ -7,6 +7,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
+  GRADLE_VERSION: '8.7'
 
 jobs:
   build:
@@ -32,8 +33,13 @@ jobs:
       - name: Setup Android SDK
         uses: android-actions/setup-android@v3
 
-      - name: Grant Gradle execute permission
-        run: chmod +x gradlew
+      - name: Download Gradle
+        run: |
+          wget -q https://services.gradle.org/distributions/gradle-${{ env.GRADLE_VERSION }}-bin.zip
+          unzip -q gradle-${{ env.GRADLE_VERSION }}-bin.zip
+          export PATH=$PWD/gradle-${{ env.GRADLE_VERSION }}/bin:$PATH
+          echo "PATH=$PWD/gradle-${{ env.GRADLE_VERSION }}/bin:$PATH" >> $GITHUB_ENV
+          gradle --version
 
       - name: Generate Release Keystore
         run: |
@@ -49,13 +55,13 @@ jobs:
             -dname "CN=ForgeTrack, OU=Dev, O=ForgeTrack, L=Unknown, ST=Unknown, C=US"
 
       - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
+        run: gradle assembleDebug --no-daemon --stacktrace 2>&1
 
       - name: Build Release APK (Signed)
-        run: ./gradlew assembleRelease --no-daemon --stacktrace 2>&1
+        run: gradle assembleRelease --no-daemon --stacktrace 2>&1
 
       - name: Build Release AAB (Signed)
-        run: ./gradlew bundleRelease --no-daemon --stacktrace 2>&1
+        run: gradle bundleRelease --no-daemon --stacktrace 2>&1
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
