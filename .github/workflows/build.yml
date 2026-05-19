@@ -90,6 +90,17 @@ jobs:
           name: ForgeTrack-Release-AAB
           path: app/build/outputs/bundle/release/*.aab
 
+      - name: Delete Old Releases (keep only latest)
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Get all non-draft releases, skip the first (we'll create a new one)
+          gh release list --limit 100 --json tagName,isDraft -q | tail -n +2 | while read -r release; do
+            tag=$(echo "$release" | jq -r '.tagName')
+            echo "Deleting old release: $tag"
+            gh release delete "$tag" --yes --cleanup-tag || true
+          done || true
+
       - name: Create GitHub Release with APK
         uses: softprops/action-gh-release@v2
         if: success()

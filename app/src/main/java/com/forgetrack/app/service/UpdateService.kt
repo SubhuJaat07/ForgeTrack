@@ -8,11 +8,12 @@ import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
-import com.forgetrack.app.BuildConfig
+import com.forgetrack.app.data.local.UserPreferences
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.withContext
 import okhttp3.OkHttpClient
 import okhttp3.Request
@@ -47,7 +48,10 @@ sealed class UpdateState {
     data class DownloadComplete(val file: File) : UpdateState()
 }
 
-class UpdateService(private val context: Context) {
+class UpdateService(
+    private val context: Context,
+    private val userPreferences: UserPreferences? = null
+) {
     companion object {
         private const val GITHUB_API_URL = "https://api.github.com/repos/SubhuJaat07/ForgeTrack/releases/latest"
         private const val TAG_PREFIX = "v"
@@ -81,7 +85,14 @@ class UpdateService(private val context: Context) {
             }
 
             val latestVersion = parseVersion(release.tagName.removePrefix(TAG_PREFIX))
-            val currentVersion = parseVersion(BuildConfig.VERSION_NAME)
+
+            // Use the saved "last known version" from DataStore instead of hardcoded BuildConfig
+            val savedVersion = try {
+                userPreferences?.lastKnownVersion?.first() ?: "1.0.0"
+            } catch (_: Exception) {
+                "1.0.0"
+            }
+            val currentVersion = parseVersion(savedVersion)
 
             if (latestVersion > currentVersion) {
                 val apkAsset = release.assets.firstOrNull {
@@ -101,6 +112,15 @@ class UpdateService(private val context: Context) {
         } catch (e: Exception) {
             UpdateState.Error(e.message ?: "Unknown error checking for updates")
         }
+    }
+
+    /**
+     * Call this after an update is installed or dismissed so the same version
+     * is not shown again as "available".
+     */
+    suspend fun markVersionAsCurrent(versionTag: String) {
+        val version = versionTag.removePrefix(TAG_PREFIX)
+        userPreferences?.setLastKnownVersion(version)
     }
 
     suspend fun downloadUpdate(downloadUrl: String): File = withContext(Dispatchers.IO) {
@@ -173,7 +193,7 @@ class UpdateService(private val context: Context) {
         try {
             val uri = FileProvider.getUriForFile(
                 context,
-                "${BuildConfig.APPLICATION_ID}.fileprovider",
+                "${context.packageName}.fileprovider",
                 file
             )
 
@@ -184,20 +204,13 @@ class UpdateService(private val context: Context) {
             }
             context.startActivity(intent)
         } catch (e: Exception) {
-            // Fallback
+            // Fallback: open downloads folder
             try {
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(Uri.fromFile(file), "application/vnd.android.package-archive")
-                    addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
-                }
-                context.startActivity(intent)
-            } catch (_: Exception) {
-                // Open downloads folder as last resort
                 val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS).apply {
                     addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                 }
                 context.startActivity(intent)
-            }
+            } catch (_: Exception) {}
         }
     }
 
@@ -216,7 +229,7 @@ class UpdateService(private val context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val intent = Intent(
                 Settings.ACTION_MANAGE_UNKNOWN_APP_SOURCES,
-                Uri.parse("package:${BuildConfig.APPLICATION_ID}")
+                Uri.parse("package:${context.packageName}")
             ).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
             context.startActivity(intent)
         } else {

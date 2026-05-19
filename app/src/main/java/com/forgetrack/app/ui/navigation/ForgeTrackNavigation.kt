@@ -16,6 +16,7 @@ import com.forgetrack.app.ui.screens.job.JobsScreen
 import com.forgetrack.app.ui.screens.job.JobsViewModel
 import com.forgetrack.app.ui.screens.onboarding.OnboardingScreen
 import com.forgetrack.app.ui.screens.settings.SettingsScreen
+import com.forgetrack.app.ui.screens.update.UpdateViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 
 object Routes {
@@ -101,7 +102,17 @@ fun ForgeTrackNavigation(
         }
 
         composable(Routes.SETTINGS) {
-            SettingsScreen()
+            val updateViewModel: UpdateViewModel = hiltViewModel()
+            SettingsScreen(
+                onResetOnboarding = {
+                    navController.navigate(Routes.ONBOARDING) {
+                        popUpTo(0) { inclusive = true }
+                    }
+                },
+                onCheckForUpdate = {
+                    updateViewModel.checkForUpdateManual()
+                }
+            )
         }
     }
 }

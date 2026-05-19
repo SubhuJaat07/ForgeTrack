@@ -12,17 +12,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.compose.rememberNavController
+import com.forgetrack.app.data.local.UserPreferences
 import com.forgetrack.app.ui.navigation.ForgeTrackNavigation
 import com.forgetrack.app.ui.navigation.Routes
-import com.forgetrack.app.ui.screens.dashboard.DashboardViewModel
 import com.forgetrack.app.ui.screens.update.UpdateAvailableDialog
 import com.forgetrack.app.ui.screens.update.UpdateViewModel
 import com.forgetrack.app.ui.theme.ForgeTrackTheme
 import dagger.hilt.android.AndroidEntryPoint
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+
+    @Inject lateinit var userPreferences: UserPreferences
+
     override fun onCreate(savedInstanceState: Bundle?) {
         installSplashScreen()
         super.onCreate(savedInstanceState)
@@ -33,10 +38,10 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val dashboardViewModel: DashboardViewModel = hiltViewModel()
-                    val updateViewModel: UpdateViewModel = hiltViewModel()
+                    val isOnboarded by userPreferences.isOnboarded
+                        .collectAsStateWithLifecycle(initialValue = false)
 
-                    val isOnboarded by dashboardViewModel.isOnboarded.collectAsState(initial = false)
+                    val updateViewModel: UpdateViewModel = hiltViewModel()
                     val navController = rememberNavController()
 
                     // Check for updates on first composition

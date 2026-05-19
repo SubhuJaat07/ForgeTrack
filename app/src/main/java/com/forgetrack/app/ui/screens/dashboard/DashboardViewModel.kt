@@ -33,18 +33,26 @@ class DashboardViewModel @Inject constructor(
 
     init {
         viewModelScope.launch {
-            jobRepository.getTodayJobs(todayStart(), todayEnd()).collect { jobs ->
-                _todayJobs.value = jobs
+            try {
+                jobRepository.getTodayJobs(todayStart(), todayEnd()).collect { jobs ->
+                    _todayJobs.value = jobs
+                }
+            } catch (_: Exception) {
+                _todayJobs.value = emptyList()
             }
         }
         viewModelScope.launch {
-            jobRepository.getWeekJobs(weekAgo()).collect { jobs ->
-                _weeklyStats.value = WeeklyStats(
-                    totalJobs = jobs.size,
-                    completedJobs = jobs.count { it.status == JobStatus.COMPLETED },
-                    totalRevenue = jobs.filter { it.status == JobStatus.COMPLETED }.sumOf { it.revenue },
-                    totalHours = jobs.filter { it.status == JobStatus.COMPLETED }.sumOf { it.totalDuration }
-                )
+            try {
+                jobRepository.getWeekJobs(weekAgo()).collect { jobs ->
+                    _weeklyStats.value = WeeklyStats(
+                        totalJobs = jobs.size,
+                        completedJobs = jobs.count { it.status == JobStatus.COMPLETED },
+                        totalRevenue = jobs.filter { it.status == JobStatus.COMPLETED }.sumOf { it.revenue },
+                        totalHours = jobs.filter { it.status == JobStatus.COMPLETED }.sumOf { it.totalDuration }
+                    )
+                }
+            } catch (_: Exception) {
+                _weeklyStats.value = WeeklyStats()
             }
         }
     }

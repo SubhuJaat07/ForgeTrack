@@ -26,6 +26,7 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
         val CURRENCY = stringPreferencesKey("currency")
         val AUTO_PDF = booleanPreferencesKey("auto_pdf")
         val NOTIFICATIONS = booleanPreferencesKey("notifications")
+        val LAST_KNOWN_VERSION = stringPreferencesKey("last_known_version")
     }
 
     val isOnboarded: Flow<Boolean> = context.dataStore.data.map { it[Keys.IS_ONBOARDED] ?: false }
@@ -37,6 +38,9 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     val autoPdf: Flow<Boolean> = context.dataStore.data.map { it[Keys.AUTO_PDF] ?: true }
     val notifications: Flow<Boolean> = context.dataStore.data.map { it[Keys.NOTIFICATIONS] ?: true }
 
+    // ── Update tracking ────────────────────────────────────────────────
+    val lastKnownVersion: Flow<String> = context.dataStore.data.map { it[Keys.LAST_KNOWN_VERSION] ?: "1.0.0" }
+
     suspend fun setOnboarded(value: Boolean) { context.dataStore.edit { it[Keys.IS_ONBOARDED] = value } }
     suspend fun setUserName(value: String) { context.dataStore.edit { it[Keys.USER_NAME] = value } }
     suspend fun setUserCompany(value: String) { context.dataStore.edit { it[Keys.USER_COMPANY] = value } }
@@ -45,4 +49,5 @@ class UserPreferences @Inject constructor(@ApplicationContext private val contex
     suspend fun setCurrency(value: String) { context.dataStore.edit { it[Keys.CURRENCY] = value } }
     suspend fun setAutoPdf(value: Boolean) { context.dataStore.edit { it[Keys.AUTO_PDF] = value } }
     suspend fun setNotifications(value: Boolean) { context.dataStore.edit { it[Keys.NOTIFICATIONS] = value } }
+    suspend fun setLastKnownVersion(value: String) { context.dataStore.edit { it[Keys.LAST_KNOWN_VERSION] = value } }
 }
