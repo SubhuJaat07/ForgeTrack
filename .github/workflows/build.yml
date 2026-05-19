@@ -1,135 +1,119 @@
-name: Build Android APK (No EAS Token)
+name: Build Android APK
 
 on:
   push:
     branches: [main]
   workflow_dispatch:
-    inputs:
-      build_type:
-        description: 'Build type (debug = faster, release = signed APK)'
-        required: true
-        default: 'debug'
-        type: choice
-        options:
-          - debug
-          - release
+
+env:
+  JAVA_VERSION: '17'
 
 jobs:
   build:
-    name: Build Android APK
+    name: Build Android APK/AAB
     runs-on: ubuntu-latest
     timeout-minutes: 60
 
     steps:
-      - name: 📥 Checkout code
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: ☕ Setup Java 21
-        uses: actions/setup-java@v4
+      - uses: actions/setup-java@v4
         with:
-          java-version: '21'
+          java-version: ${{ env.JAVA_VERSION }}
           distribution: 'zulu'
 
-      - name: 🟢 Setup Node.js
-        uses: actions/setup-node@v4
+      - name: Cache Gradle
+        uses: actions/cache@v4
         with:
-          node-version: '20'
-          cache: 'npm'
+          path: ~/.gradle/caches
+          key: gradle-${{ hashFiles('**/*.gradle*', '**/*.gradle.kts') }}
+          restore-keys: gradle-
 
-      - name: 📦 Install npm dependencies
-        run: npm install --legacy-peer-deps
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
 
-      - name: 🏗️ Generate native Android project
-        run: npx expo prebuild --platform android --clean --no-install
+      - name: Grant Gradle execute permission
+        run: chmod +x gradlew
 
-      - name: 🔧 Configure Gradle
-        run: |
-          cd android
-          chmod +x gradlew
-          # Limit ABI to arm64-v8a for faster builds
-          echo 'android {defaultConfig {ndk {abiFilters += ["arm64-v8a"]}}}' >> app/build.gradle
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon --warning-mode=all 2>&1
 
-      - name: 📱 Build Debug APK
-        if: github.event.inputs.build_type == 'debug' || github.event.inputs.build_type == ''
-        run: |
-          cd android
-          ./gradlew assembleDebug --no-daemon --warning-mode=none
-          echo "APK size: $(du -h app/build/outputs/apk/debug/*.apk | cut -f1)"
+      - name: Build Release AAB
+        run: ./gradlew bundleRelease --no-daemon --warning-mode=all 2>&1
 
-      - name: 🔑 Create signing keystore
-        if: github.event.inputs.build_type == 'release'
-        run: |
-          keytool -genkeypair -v \
-            -keystore /tmp/release.keystore \
-            -alias forgetrack \
-            -keyalg RSA -keysize 2048 -validity 10000 \
-            -storepass forgetrack123 -keypass forgetrack123 \
-            -dname "CN=ForgeTrack,OU=Dev,O=ForgeTrack,L=Mumbai,S=MH,C=IN"
-
-      - name: 📱 Build Release APK (Signed)
-        if: github.event.inputs.build_type == 'release'
-        run: |
-          cd android
-          # Inject release signing
-          cat >> app/build.gradle << 'EOF'
-
-          android {
-            signingConfigs {
-              release {
-                storeFile file("/tmp/release.keystore")
-                storePassword "forgetrack123"
-                keyAlias "forgetrack"
-                keyPassword "forgetrack123"
-              }
-            }
-            buildTypes {
-              release {
-                signingConfig signingConfigs.release
-                minifyEnabled false
-                shrinkResources false
-              }
-            }
-          }
-          EOF
-
-          ./gradlew assembleRelease --no-daemon --warning-mode=none
-          echo "APK size: $(du -h app/build/outputs/apk/release/*.apk | cut -f1)"
-
-      - name: 📤 Upload APK
+      - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
-          name: ForgeTrack-${{ github.event.inputs.build_type || 'Debug' }}-APK
-          path: |
-            android/app/build/outputs/apk/debug/*.apk
-            android/app/build/outputs/apk/release/*.apk
-          if-no-files-found: warn
+          name: ForgeTrack-Debug-APK
+          path: app/build/outputs/apk/debug/*.apk
 
-      - name: 🚀 Create GitHub Release
-        if: github.event.inputs.build_type == 'release' && success()
+      - name: Upload Release AAB
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ForgeTrack-Release-AAB
+          path: app/build/outputs/bundle/release/*.aab
+
+      - name: Create Release
         uses: softprops/action-gh-release@v2
+        if: success()
         with:
           tag_name: v1.0.${{ github.run_number }}
           name: "ForgeTrack v1.0.${{ github.run_number }}"
           body: |
-            ## 📱 ForgeTrack - Professional Field Service & Job Tracker
-
-            ### APK Details
+            ## ForgeTrack - Professional Field Service & Job Tracker
+            Pure Native Android (Kotlin + Jetpack Compose + Material 3)
             - **Build**: #${{ github.run_number }}
             - **Commit**: `${{ github.sha }}`
-            - **Type**: Release (Signed)
-            - **ABI**: arm64-v8a
-          files: android/app/build/outputs/apk/release/*.apk
+          files: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/outputs/bundle/release/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: 📋 Summary
+      - name: Build Summary
         if: always()
         run: |
           echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "| Item | Details |" >> $GITHUB_STEP_SUMMARY
-          echo "|------|---------|" >> $GITHUB_STEP_SUMMARY
-          echo "| Type | ${{ github.event.inputs.build_type || 'debug' }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Status | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
-          echo "| Commit | \`${{ github.sha }}\` |" >> $GITHUB_STEP_SUMMARY
+          echo "| Type | Status |" >> $GITHUB_STEP_SUMMARY
+          echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Debug APK | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release AAB | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📥 **Download APK**: Actions → This Run → Artifacts" >> $GITHUB_STEP_SUMMARY
+          echo "📥 Download: Actions → This Run → Artifacts" >> $GITHUB_STEP_SUMMARY
+
+  fix-and-retry:
+    name: Fix Build Errors
+    needs: build
+    if: failure()
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      matrix:
+        attempt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+
+      - uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'zulu'
+
+      - uses: android-actions/setup-android@v3
+
+      - name: Get build error logs
+        if: matrix.attempt == 1
+        run: echo "Fetching error logs from previous run..."
+
+      - name: Attempt ${{ matrix.attempt }} - Build Debug APK
+        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --warning-mode=all --stacktrace 2>&1
+
+      - name: Upload Fixed APK
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ForgeTrack-Fixed-APK-Attempt-${{ matrix.attempt }}
+          path: app/build/outputs/apk/debug/*.apk

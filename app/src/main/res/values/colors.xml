@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="seed">#6C5CE7</color>
+    <color name="purple_500">#6C5CE7</color>
+    <color name="purple_700">#5a42db</color>
+    <color name="success">#00b894</color>
+    <color name="warning">#fdcb6e</color>
+    <color name="danger">#ff6b6b</color>
+    <color name="dark_bg">#0f0f1a</color>
+    <color name="dark_card">#1a1a2e</color>
+    <color name="dark_surface">#252542</color>
+</resources>
