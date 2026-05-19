@@ -233,8 +233,8 @@ fun JobDetailScreen(
             // ── GPS Check-in/out Section ────────────────────────────────────
             item {
                 GpsCheckSection(
-                    hasCheckedIn = currentJob.checkInTime > 0,
-                    hasCheckedOut = currentJob.checkOutTime > 0,
+                    hasCheckedIn = (currentJob.checkInTime ?: 0L) > 0,
+                    hasCheckedOut = (currentJob.checkOutTime ?: 0L) > 0,
                     address = currentJob.address,
                     latitude = currentJob.latitude,
                     longitude = currentJob.longitude,
@@ -827,9 +827,10 @@ private fun SignaturePreview(path: String) {
 // ── Details Tab Content ──────────────────────────────────────────────────────
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun DetailsTabContent(job: com.forgetrack.app.data.model.Job) {
     val profit = job.revenue - job.cost
-    val profitMargin = if (job.revenue > 0) (profit / job.revenue * 100).coerceIn(0f, 100f) else 0f
+    val profitMargin = if (job.revenue > 0) (profit / job.revenue * 100.0).coerceIn(0.0, 100.0).toFloat() else 0f
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -903,7 +904,7 @@ private fun DetailsTabContent(job: com.forgetrack.app.data.model.Job) {
                     )
                 }
                 LinearProgressIndicator(
-                    progress = { profitMargin / 100f },
+                    progress = profitMargin / 100f,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(8.dp)
@@ -923,7 +924,7 @@ private fun DetailsTabContent(job: com.forgetrack.app.data.model.Job) {
 
             // Tags
             DetailRow(
-                icon = Icons.Outlined.LabelOutline,
+                icon = Icons.Outlined.Label,
                 label = "Tags",
                 value = job.tags.ifBlank { "No tags" }
             )

@@ -158,6 +158,8 @@ fun HistoryScreen(
                             selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                         ),
                         border = FilterChipDefaults.filterChipBorder(
+                            enabled = true,
+                            selected = selectedFilter == filter,
                             borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                             selectedBorderColor = MaterialTheme.colorScheme.primary
                         )

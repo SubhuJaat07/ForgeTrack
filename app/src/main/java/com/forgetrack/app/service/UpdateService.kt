@@ -132,7 +132,8 @@ class UpdateService @Inject constructor(
         var lastProgress = 0
         val query = DownloadManager.Query().setFilterById(downloadId)
 
-        while (true) {
+        var resultFile: File? = null
+        while (resultFile == null) {
             delay(500)
             val cursor: android.database.Cursor? = downloadManager.query(query)
             cursor?.use {
@@ -155,7 +156,7 @@ class UpdateService @Inject constructor(
                             val uriStr = it.getString(uriIndex)
                             val file = File(Uri.parse(uriStr).path ?: "")
                             if (file.exists()) {
-                                return@withContext file
+                                resultFile = file
                             } else {
                                 throw Exception("Downloaded file not found")
                             }
@@ -169,6 +170,7 @@ class UpdateService @Inject constructor(
                 }
             }
         }
+        resultFile
     }
 
     fun installUpdate(file: File) {
