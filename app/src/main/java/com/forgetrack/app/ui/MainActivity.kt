@@ -33,8 +33,8 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    val dashboardViewModel: DashboardViewModel by hiltViewModel()
-                    val updateViewModel: UpdateViewModel by hiltViewModel()
+                    val dashboardViewModel: DashboardViewModel = hiltViewModel()
+                    val updateViewModel: UpdateViewModel = hiltViewModel()
 
                     val isOnboarded by dashboardViewModel.isOnboarded.collectAsState(initial = false)
                     val navController = rememberNavController()
