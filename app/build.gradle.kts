@@ -131,6 +131,9 @@ dependencies {
     // Splash
     implementation("androidx.core:core-splashscreen:1.0.1")
 
+    // OkHttp for update API calls
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
 }

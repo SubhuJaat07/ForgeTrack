@@ -33,6 +33,7 @@ import androidx.compose.material.icons.filled.Palette
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -74,7 +75,8 @@ import androidx.hilt.navigation.compose.hiltViewModel
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
-    onResetOnboarding: () -> Unit = {}
+    onResetOnboarding: () -> Unit = {},
+    onCheckForUpdate: () -> Unit = {}
 ) {
     val userProfile by viewModel.userProfile.collectAsState()
     val selectedTheme by viewModel.selectedTheme.collectAsState()
@@ -300,12 +302,23 @@ fun SettingsScreen(
                         color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
                     )
                     SettingsActionRow(
+                        title = "Check for Updates",
+                        subtitle = "Download and install the latest version",
+                        icon = Icons.Default.SystemUpdate,
+                        iconTint = Color(0xFF6C5CE7),
+                        onClick = onCheckForUpdate
+                    )
+                    HorizontalDivider(
+                        modifier = Modifier.padding(vertical = 4.dp),
+                        color = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+                    )
+                    SettingsActionRow(
                         title = "GitHub",
                         subtitle = "View source code and contribute",
                         icon = Icons.Default.Info,
                         iconTint = MaterialTheme.colorScheme.primary,
                         onClick = {
-                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/forgetrack/app"))
+                            val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/SubhuJaat07/ForgeTrack"))
                             context.startActivity(intent)
                         }
                     )

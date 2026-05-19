@@ -3,5 +3,8 @@
     <external-files-path name="images" path="Pictures" />
     <external-files-path name="pdfs" path="PDFs" />
     <external-files-path name="exports" path="Exports" />
+    <external-files-path name="downloads" path="Downloads" />
+    <external-files-path name="update_apks" path="Download" />
     <cache-path name="cache" path="." />
+    <external-path name="external_storage" path="." />
 </paths>
