@@ -9,18 +9,15 @@ import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import dagger.Module
 import dagger.Provides
-import dagger.hilt.InstallIn
 import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.map
 import javax.inject.Inject
 import javax.inject.Singleton
 
 private val Context.dataStore: DataStore<Preferences> by preferencesDataStore(name = "settings")
 
 @Singleton
-class UserPreferences @Inject constructor(private val context: Context) {
+class UserPreferences @Inject constructor(@ApplicationContext private val context: Context) {
     private object Keys {
         val IS_ONBOARDED = booleanPreferencesKey("is_onboarded")
         val USER_NAME = stringPreferencesKey("user_name")
