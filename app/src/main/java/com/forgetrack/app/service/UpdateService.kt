@@ -11,7 +11,6 @@ import androidx.core.content.FileProvider
 import com.forgetrack.app.BuildConfig
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
-import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
@@ -19,8 +18,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import java.io.File
 import java.util.concurrent.TimeUnit
-import javax.inject.Inject
-import javax.inject.Singleton
+
 
 data class GitHubRelease(
     @SerializedName("tag_name") val tagName: String = "",
@@ -49,10 +47,7 @@ sealed class UpdateState {
     data class DownloadComplete(val file: File) : UpdateState()
 }
 
-@Singleton
-class UpdateService @Inject constructor(
-    @ApplicationContext private val context: Context
-) {
+class UpdateService(private val context: Context) {
     companion object {
         private const val GITHUB_API_URL = "https://api.github.com/repos/SubhuJaat07/ForgeTrack/releases/latest"
         private const val TAG_PREFIX = "v"

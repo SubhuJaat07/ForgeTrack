@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
+import android.app.Application
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.forgetrack.app.service.UpdateService
@@ -37,8 +38,10 @@ import javax.inject.Inject
 
 @HiltViewModel
 class UpdateViewModel @Inject constructor(
-    private val updateService: UpdateService
+    application: Application
 ) : ViewModel() {
+
+    private val updateService = UpdateService(application)
 
     var updateState by mutableStateOf<UpdateState>(UpdateState.UpToDate)
         private set
