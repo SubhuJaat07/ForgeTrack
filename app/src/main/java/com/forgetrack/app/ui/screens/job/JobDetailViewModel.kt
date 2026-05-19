@@ -11,7 +11,7 @@ import com.forgetrack.app.data.model.VoiceNote
 import com.forgetrack.app.data.repository.JobRepository
 import com.forgetrack.app.util.generateId
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.Job
+import kotlinx.coroutines.Job as CoroutineJob
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.isActive
@@ -38,7 +38,7 @@ class JobDetailViewModel @Inject constructor(
     private val _isTimerRunning = MutableStateFlow(false)
     val isTimerRunning: StateFlow<Boolean> = _isTimerRunning
 
-    private var timerJob: Job? = null
+    private var timerJob: CoroutineJob? = null
 
     private val _notes = MutableStateFlow<List<String>>(emptyList())
     val notes: StateFlow<List<String>> = _notes
