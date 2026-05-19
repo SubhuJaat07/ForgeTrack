@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import com.forgetrack.app.data.local.dao.ClientDao
 import com.forgetrack.app.data.local.dao.JobDao
 import com.forgetrack.app.data.model.Client
@@ -22,6 +23,7 @@ import javax.inject.Singleton
     version = 1,
     exportSchema = false
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun jobDao(): JobDao
     abstract fun clientDao(): ClientDao

@@ -3,6 +3,12 @@ package com.forgetrack.app.util
 import java.text.SimpleDateFormat
 import java.util.*
 
+// Top-level function aliases used by screens
+fun formatCurrency(amount: Double, currency: String = "USD"): String = amount.toCurrency(currency)
+fun formatDate(timestamp: Long): String = timestamp.toDateString()
+fun formatTime(timestamp: Long): String = timestamp.toTimeString()
+fun formatTimer(seconds: Long): String = seconds.formatDuration()
+
 fun Long.toDateString(): String {
     val sdf = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     return sdf.format(Date(this))

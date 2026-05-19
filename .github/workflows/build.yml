@@ -1,4 +1,4 @@
-name: Build Android APK
+name: Build ForgeTrack APK/AAB
 
 on:
   push:
@@ -35,17 +35,40 @@ jobs:
       - name: Grant Gradle execute permission
         run: chmod +x gradlew
 
-      - name: Build Debug APK
-        run: ./gradlew assembleDebug --no-daemon --warning-mode=all 2>&1
+      - name: Generate Release Keystore
+        run: |
+          keytool -genkeypair \
+            -v \
+            -keystore release.keystore \
+            -alias forgetrack \
+            -keyalg RSA \
+            -keysize 2048 \
+            -validity 10000 \
+            -storepass forgetrack123 \
+            -keypass forgetrack123 \
+            -dname "CN=ForgeTrack, OU=Dev, O=ForgeTrack, L=Unknown, ST=Unknown, C=US"
 
-      - name: Build Release AAB
-        run: ./gradlew bundleRelease --no-daemon --warning-mode=all 2>&1
+      - name: Build Debug APK
+        run: ./gradlew assembleDebug --no-daemon --stacktrace 2>&1
+
+      - name: Build Release APK (Signed)
+        run: ./gradlew assembleRelease --no-daemon --stacktrace 2>&1
+
+      - name: Build Release AAB (Signed)
+        run: ./gradlew bundleRelease --no-daemon --stacktrace 2>&1
 
       - name: Upload Debug APK
         uses: actions/upload-artifact@v4
         with:
           name: ForgeTrack-Debug-APK
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Release APK
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: ForgeTrack-Release-APK
+          path: app/build/outputs/apk/release/*.apk
 
       - name: Upload Release AAB
         uses: actions/upload-artifact@v4
@@ -67,6 +90,7 @@ jobs:
             - **Commit**: `${{ github.sha }}`
           files: |
             app/build/outputs/apk/debug/*.apk
+            app/build/outputs/apk/release/*.apk
             app/build/outputs/bundle/release/*.aab
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -78,42 +102,7 @@ jobs:
           echo "| Type | Status |" >> $GITHUB_STEP_SUMMARY
           echo "|------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Debug APK | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Release APK | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Release AAB | ${{ job.status }} |" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "📥 Download: Actions → This Run → Artifacts" >> $GITHUB_STEP_SUMMARY
-
-  fix-and-retry:
-    name: Fix Build Errors
-    needs: build
-    if: failure()
-    runs-on: ubuntu-latest
-    timeout-minutes: 30
-    strategy:
-      matrix:
-        attempt: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
-
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: ${{ github.sha }}
-
-      - uses: actions/setup-java@v4
-        with:
-          java-version: '17'
-          distribution: 'zulu'
-
-      - uses: android-actions/setup-android@v3
-
-      - name: Get build error logs
-        if: matrix.attempt == 1
-        run: echo "Fetching error logs from previous run..."
-
-      - name: Attempt ${{ matrix.attempt }} - Build Debug APK
-        run: chmod +x gradlew && ./gradlew assembleDebug --no-daemon --warning-mode=all --stacktrace 2>&1
-
-      - name: Upload Fixed APK
-        if: success()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ForgeTrack-Fixed-APK-Attempt-${{ matrix.attempt }}
-          path: app/build/outputs/apk/debug/*.apk
+          echo "Downloads in Actions > This Run > Artifacts" >> $GITHUB_STEP_SUMMARY

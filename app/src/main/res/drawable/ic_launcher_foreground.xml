@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Background circle -->
+    <path
+        android:fillColor="#6C5CE7"
+        android:pathData="M54,54m-40,0a40,40 0,1 1,80 0a40,40 0,1 1,-80 0" />
+    <!-- Wrench shape -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M62,38 L66,38 L66,42 L62,42 Z M62,66 L66,66 L66,70 L62,70 Z M38,62 L42,62 L42,66 L38,66 Z M38,38 L42,38 L42,42 L38,42 Z M56,36 L52,36 L52,40 L56,40 Z M56,68 L52,68 L52,72 L56,72 Z M36,56 L36,52 L40,52 L40,56 Z M68,56 L68,52 L72,52 L72,56 Z" />
+    <!-- Cross/plus in center -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M50,50 L50,58 L58,58 L58,50 L58,50 L50,50 Z M52,44 L56,44 L56,48 L52,48 Z M52,60 L56,60 L56,64 L52,64 Z M44,52 L48,52 L48,56 L44,56 Z M60,52 L64,52 L64,56 L60,56 Z" />
+    <!-- Outer ring -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.3"
+        android:pathData="M54,14m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.3"
+        android:pathData="M54,94m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.3"
+        android:pathData="M14,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillAlpha="0.3"
+        android:pathData="M94,54m-6,0a6,6 0,1 1,12 0a6,6 0,1 1,-12 0" />
+</vector>

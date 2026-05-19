@@ -9,9 +9,7 @@ import android.graphics.pdf.PdfDocument.PageInfo
 import android.graphics.Typeface
 import android.os.Environment
 import com.forgetrack.app.data.model.Job
-import com.forgetrack.app.util.Double.Companion.toCurrency
-import com.forgetrack.app.util.Long.Companion.formatDuration
-import com.forgetrack.app.util.toDateString
+import com.forgetrack.app.util.*
 import java.io.File
 import java.io.FileOutputStream
 

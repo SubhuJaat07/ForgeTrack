@@ -33,12 +33,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.forgetrack.app.data.model.Job
 import com.forgetrack.app.data.model.JobStatus
 import com.forgetrack.app.data.model.WeeklyStats
-import com.forgetrack.app.ui.theme.*
 import com.forgetrack.app.util.formatCurrency
-import com.forgetrack.app.util.formatDate
 import com.forgetrack.app.util.formatTime
 import com.forgetrack.app.util.formatTimer
-import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.cos
 import kotlin.math.sin

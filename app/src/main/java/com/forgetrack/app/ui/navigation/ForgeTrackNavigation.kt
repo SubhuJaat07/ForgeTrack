@@ -1,9 +1,6 @@
 package com.forgetrack.app.ui.navigation
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -15,8 +12,11 @@ import com.forgetrack.app.ui.screens.dashboard.DashboardScreen
 import com.forgetrack.app.ui.screens.history.HistoryScreen
 import com.forgetrack.app.ui.screens.job.CreateJobScreen
 import com.forgetrack.app.ui.screens.job.JobDetailScreen
+import com.forgetrack.app.ui.screens.job.JobsScreen
+import com.forgetrack.app.ui.screens.job.JobsViewModel
 import com.forgetrack.app.ui.screens.onboarding.OnboardingScreen
 import com.forgetrack.app.ui.screens.settings.SettingsScreen
+import androidx.hilt.navigation.compose.hiltViewModel
 
 object Routes {
     const val ONBOARDING = "onboarding"
@@ -38,7 +38,7 @@ fun ForgeTrackNavigation(
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
-                onFinished = {
+                onComplete = {
                     navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.ONBOARDING) { inclusive = true }
                     }
@@ -48,20 +48,20 @@ fun ForgeTrackNavigation(
 
         composable(Routes.DASHBOARD) {
             DashboardScreen(
-                onNavigateToJob = { jobId ->
+                onNavigateToJobDetail = { jobId ->
                     navController.navigate("job/$jobId")
                 },
-                onCreateJob = {
+                onNavigateToCreateJob = {
                     navController.navigate(Routes.CREATE_JOB)
                 }
             )
         }
 
         composable(Routes.JOBS) {
-            val vm: com.forgetrack.app.ui.screens.job.JobsViewModel = hiltViewModel()
-            com.forgetrack.app.ui.screens.job.JobsScreen(
-                onJobClick = { jobId -> navController.navigate("job/$jobId") },
-                onCreateJob = { navController.navigate(Routes.CREATE_JOB) },
+            val vm: JobsViewModel = hiltViewModel()
+            JobsScreen(
+                onNavigateToJobDetail = { jobId -> navController.navigate("job/$jobId") },
+                onNavigateToCreateJob = { navController.navigate(Routes.CREATE_JOB) },
                 viewModel = vm
             )
         }
@@ -73,7 +73,7 @@ fun ForgeTrackNavigation(
             val jobId = backStackEntry.arguments?.getString("jobId") ?: ""
             JobDetailScreen(
                 jobId = jobId,
-                onBack = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 
@@ -84,7 +84,7 @@ fun ForgeTrackNavigation(
                         popUpTo(Routes.CREATE_JOB) { inclusive = true }
                     }
                 },
-                onCancel = { navController.popBackStack() }
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

@@ -61,6 +61,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.forgetrack.app.data.model.Job
 import com.forgetrack.app.data.model.JobStatus
+import com.forgetrack.app.data.model.JobPriority
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -451,9 +452,10 @@ private fun HistoryJobCard(job: Job) {
                         text = job.priority.name,
                         style = MaterialTheme.typography.labelSmall,
                         color = when (job.priority) {
-                            com.forgetrack.app.data.model.Priority.HIGH -> Color(0xFFff6b6b)
-                            com.forgetrack.app.data.model.Priority.MEDIUM -> Color(0xFFfdcb6e)
-                            com.forgetrack.app.data.model.Priority.LOW -> Color(0xFF00b894)
+                            JobPriority.HIGH -> Color(0xFFff6b6b)
+                            JobPriority.MEDIUM -> Color(0xFFfdcb6e)
+                            JobPriority.LOW -> Color(0xFF00b894)
+                            JobPriority.URGENT -> Color(0xFFD32F2F)
                         }
                     )
                 }

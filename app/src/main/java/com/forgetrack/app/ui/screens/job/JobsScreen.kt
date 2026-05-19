@@ -81,11 +81,7 @@ private val filterOptions = listOf(
     "CANCELLED" to "Cancelled"
 )
 
-private val sortOptions = listOf(
-    "date" to Icons.Outlined.CalendarMonth to "Date",
-    "priority" to Icons.Outlined.Flag to "Priority",
-    "revenue" to Icons.Outlined.AttachMoney to "Revenue"
-)
+// Sort options available for the jobs list
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

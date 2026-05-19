@@ -56,12 +56,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.forgetrack.app.data.model.JobStatus
-import com.forgetrack.app.ui.theme.ForgeTrackColors
-import com.forgetrack.app.ui.theme.PrimaryPurple
-import com.forgetrack.app.util.Double.Companion.toCurrency
-import com.forgetrack.app.util.Long.Companion.formatDuration
 
-private enum class AnalyticsPeriod(val label: String) {
+enum class AnalyticsPeriod(val label: String) {
     WEEK("Week"),
     MONTH("Month"),
     YEAR("Year")
