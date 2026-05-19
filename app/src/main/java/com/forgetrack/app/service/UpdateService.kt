@@ -170,7 +170,8 @@ class UpdateService @Inject constructor(
                 }
             }
         }
-        resultFile
+        val file = resultFile!!
+        file
     }
 
     fun installUpdate(file: File) {

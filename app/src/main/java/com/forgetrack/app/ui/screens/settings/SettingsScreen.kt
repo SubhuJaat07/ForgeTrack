@@ -35,6 +35,7 @@ import androidx.compose.material.icons.filled.PictureAsPdf
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material.icons.filled.SystemUpdate
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -72,6 +73,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     viewModel: SettingsViewModel = hiltViewModel(),
@@ -162,6 +164,8 @@ fun SettingsScreen(
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
+                                    selected = selectedTheme == theme,
+                                    enabled = true,
                                     borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                                     selectedBorderColor = MaterialTheme.colorScheme.primary
                                 )
@@ -245,6 +249,8 @@ fun SettingsScreen(
                                     selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                                 ),
                                 border = FilterChipDefaults.filterChipBorder(
+                                    selected = selectedCurrency == currency,
+                                    enabled = true,
                                     borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.5f),
                                     selectedBorderColor = MaterialTheme.colorScheme.primary
                                 )

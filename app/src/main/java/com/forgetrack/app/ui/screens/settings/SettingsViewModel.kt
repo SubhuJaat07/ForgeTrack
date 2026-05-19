@@ -196,7 +196,7 @@ class SettingsViewModel @Inject constructor(
                 userPreferences.setAutoPdf(true)
                 userPreferences.setNotifications(true)
                 userPreferences.setUserName("")
-                userPreferences.setCompany("")
+                userPreferences.setUserCompany("")
                 userPreferences.setUserRole("Contractor")
             } catch (_: Exception) {
                 // Silently fail — in a production app this would surface

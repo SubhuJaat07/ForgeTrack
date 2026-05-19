@@ -12,8 +12,6 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
 
-private val Purple = Color(0xFF6C5CE7)
-private val PurpleLight = Color(0xFFa29bfe)
 private val PurpleDark = Color(0xFF4d32c7)
 
 private val LightColorScheme = lightColorScheme(
