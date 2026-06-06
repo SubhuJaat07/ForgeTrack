@@ -21,6 +21,9 @@ import com.forgetrack.app.ui.screens.update.UpdateAvailableDialog
 import com.forgetrack.app.ui.screens.update.UpdateViewModel
 import com.forgetrack.app.ui.theme.ForgeTrackTheme
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -50,7 +53,8 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // If notification tapped to show update, trigger manual check
-                    if (intent?.getBooleanExtra("show_update", false) == true) {
+                    val showUpdate = intent?.getBooleanExtra("show_update", false) == true
+                    if (showUpdate) {
                         LaunchedEffect(Unit) {
                             updateViewModel.checkForUpdateManual()
                         }
@@ -59,7 +63,12 @@ class MainActivity : ComponentActivity() {
                     Box(modifier = Modifier.fillMaxSize()) {
                         ForgeTrackNavigation(
                             navController = navController,
-                            startDestination = if (isOnboarded) Routes.DASHBOARD else Routes.ONBOARDING
+                            startDestination = if (isOnboarded) Routes.DASHBOARD else Routes.ONBOARDING,
+                            onOnboardingComplete = {
+                                CoroutineScope(Dispatchers.IO).launch {
+                                    userPreferences.setOnboarded(true)
+                                }
+                            }
                         )
 
                         // Global update dialog - shown on top of everything

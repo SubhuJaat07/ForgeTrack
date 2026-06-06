@@ -34,12 +34,15 @@ object Routes {
 @Composable
 fun ForgeTrackNavigation(
     navController: NavHostController,
-    startDestination: String
+    startDestination: String,
+    onOnboardingComplete: () -> Unit = {}
 ) {
     NavHost(navController = navController, startDestination = startDestination) {
         composable(Routes.ONBOARDING) {
             OnboardingScreen(
                 onComplete = {
+                    // Set onboarded flag first, then navigate
+                    onOnboardingComplete()
                     navController.navigate(Routes.DASHBOARD) {
                         popUpTo(Routes.ONBOARDING) { inclusive = true }
                     }

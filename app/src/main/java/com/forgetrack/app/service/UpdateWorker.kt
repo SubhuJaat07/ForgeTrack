@@ -7,12 +7,15 @@ import android.content.Context
 import android.os.Build
 import androidx.core.app.NotificationCompat
 import androidx.work.*
+import com.forgetrack.app.data.local.UserPreferences
 import com.forgetrack.app.ui.MainActivity
+import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 
 class UpdateWorker(
     context: Context,
-    workerParams: WorkerParameters
+    workerParams: WorkerParameters,
+    private val userPreferences: UserPreferences? = null
 ) : CoroutineWorker(context, workerParams) {
 
     companion object {
@@ -27,6 +30,8 @@ class UpdateWorker(
                 .setRequiresBatteryNotLow(true)
                 .build()
 
+            val data = Data.Builder().build()
+
             val periodicRequest = PeriodicWorkRequestBuilder<UpdateWorker>(
                 6, TimeUnit.HOURS,
                 15, TimeUnit.MINUTES
@@ -34,6 +39,7 @@ class UpdateWorker(
                 .setConstraints(constraints)
                 .setBackoffCriteria(BackoffPolicy.EXPONENTIAL, 30, TimeUnit.MINUTES)
                 .setInitialDelay(30, TimeUnit.MINUTES)
+                .setInputData(data)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
@@ -48,7 +54,10 @@ class UpdateWorker(
         return try {
             createNotificationChannel(applicationContext)
 
-            val updateService = UpdateService(applicationContext)
+            // Get UserPreferences from DataStore directly for background worker
+            val prefs = getOrCreateUserPreferences()
+
+            val updateService = UpdateService(applicationContext, prefs)
             val state = updateService.checkForUpdate()
 
             when (state) {
@@ -69,6 +78,13 @@ class UpdateWorker(
         } catch (_: Exception) {
             Result.retry()
         }
+    }
+
+    /**
+     * Create UserPreferences instance directly for background worker usage.
+     */
+    private fun getOrCreateUserPreferences(): UserPreferences {
+        return userPreferences ?: UserPreferences(applicationContext)
     }
 
     private fun showUpdateNotification(context: Context, title: String, message: String) {

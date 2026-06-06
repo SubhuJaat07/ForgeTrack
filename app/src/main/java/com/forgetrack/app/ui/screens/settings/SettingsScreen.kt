@@ -72,6 +72,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.forgetrack.app.BuildConfig
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -301,7 +302,7 @@ fun SettingsScreen(
                 SettingsCard {
                     SettingsInfoRow(
                         title = "Version",
-                        value = "1.0.0"
+                        value = BuildConfig.VERSION_NAME
                     )
                     HorizontalDivider(
                         modifier = Modifier.padding(vertical = 4.dp),

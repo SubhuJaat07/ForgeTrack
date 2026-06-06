@@ -4,18 +4,32 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
+import androidx.hilt.work.HiltWorkerFactory
+import com.forgetrack.app.data.local.UserPreferences
+import com.forgetrack.app.service.UpdateService
 import com.forgetrack.app.service.UpdateWorker
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 @HiltAndroidApp
 class ForgeTrackApp : Application() {
+
+    @Inject lateinit var userPreferences: UserPreferences
 
     override fun onCreate() {
         super.onCreate()
         createNotificationChannels()
 
+        // Initialize version tracking so update check doesn't show false positives
+        val updateService = UpdateService(this, userPreferences)
+        CoroutineScope(Dispatchers.IO).launch {
+            updateService.initializeVersionTracking()
+        }
+
         // Schedule background update checks - runs every 6 hours
-        // This enables auto-update: user downloads APK once, future updates happen automatically
         UpdateWorker.schedule(this)
     }
 

@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.Environment
 import android.provider.Settings
 import androidx.core.content.FileProvider
+import com.forgetrack.app.BuildConfig
 import com.forgetrack.app.data.local.UserPreferences
 import com.google.gson.Gson
 import com.google.gson.annotations.SerializedName
@@ -64,6 +65,18 @@ class UpdateService(
 
     private val gson = Gson()
 
+    /**
+     * Get the current app version as a comparable long.
+     * Uses BuildConfig.VERSION_NAME as the source of truth.
+     */
+    private fun getCurrentAppVersion(): Long {
+        return try {
+            parseVersion(BuildConfig.VERSION_NAME)
+        } catch (_: Exception) {
+            1_000_000L // 1.0.0 fallback
+        }
+    }
+
     suspend fun checkForUpdate(): UpdateState = withContext(Dispatchers.IO) {
         try {
             val request = Request.Builder()
@@ -86,15 +99,21 @@ class UpdateService(
 
             val latestVersion = parseVersion(release.tagName.removePrefix(TAG_PREFIX))
 
-            // Use the saved "last known version" from DataStore instead of hardcoded BuildConfig
-            val savedVersion = try {
-                userPreferences?.lastKnownVersion?.first() ?: "1.0.0"
-            } catch (_: Exception) {
-                "1.0.0"
-            }
-            val currentVersion = parseVersion(savedVersion)
+            // Use the higher of BuildConfig.VERSION_NAME or saved lastKnownVersion
+            // This ensures we don't show "update available" for a version we already have
+            val currentVersion = getCurrentAppVersion()
 
-            if (latestVersion > currentVersion) {
+            // Also check the saved version in case user updated but BuildConfig wasn't bumped
+            val savedVersion = try {
+                userPreferences?.lastKnownVersion?.first()?.let { parseVersion(it) } ?: 0L
+            } catch (_: Exception) {
+                0L
+            }
+
+            // Use the highest known version as current
+            val effectiveCurrent = maxOf(currentVersion, savedVersion)
+
+            if (latestVersion > effectiveCurrent) {
                 val apkAsset = release.assets.firstOrNull {
                     it.name.endsWith(".apk") && !it.name.contains("debug", ignoreCase = true)
                 } ?: release.assets.firstOrNull {
@@ -121,6 +140,22 @@ class UpdateService(
     suspend fun markVersionAsCurrent(versionTag: String) {
         val version = versionTag.removePrefix(TAG_PREFIX)
         userPreferences?.setLastKnownVersion(version)
+    }
+
+    /**
+     * Initialize the last known version from BuildConfig on first launch.
+     * Call this once from the Application class.
+     */
+    suspend fun initializeVersionTracking() {
+        try {
+            val saved = userPreferences?.lastKnownVersion?.first() ?: ""
+            if (saved.isBlank() || saved == "1.0.0") {
+                // First launch or never initialized - set to actual app version
+                userPreferences?.setLastKnownVersion(BuildConfig.VERSION_NAME)
+            }
+        } catch (_: Exception) {
+            // Ignore
+        }
     }
 
     suspend fun downloadUpdate(downloadUrl: String): File = withContext(Dispatchers.IO) {
