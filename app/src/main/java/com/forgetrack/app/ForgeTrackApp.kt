@@ -4,7 +4,6 @@ import android.app.Application
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.os.Build
-import androidx.hilt.work.HiltWorkerFactory
 import com.forgetrack.app.data.local.UserPreferences
 import com.forgetrack.app.service.UpdateService
 import com.forgetrack.app.service.UpdateWorker

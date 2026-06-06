@@ -9,7 +9,6 @@ import androidx.core.app.NotificationCompat
 import androidx.work.*
 import com.forgetrack.app.data.local.UserPreferences
 import com.forgetrack.app.ui.MainActivity
-import dagger.hilt.android.HiltAndroidApp
 import java.util.concurrent.TimeUnit
 
 class UpdateWorker(
